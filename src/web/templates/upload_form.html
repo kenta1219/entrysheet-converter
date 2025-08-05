@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>{{ title }}</h1>
+        
+        <div class="info">
+            <h3>機能説明</h3>
+            <ul>
+                <li>.xlsbファイルの「加盟店申込書_施設名」シートのF列15行目以降から必要なデータを抽出</li>
+                <li>抽出したデータを.xlsxテンプレートの「店子申請一覧」シート14行目に横展開で書き込み</li>
+                <li>処理済みファイルを「{{ output_filename }}」として返却</li>
+            </ul>
+            <p><strong>制限:</strong> ファイルサイズは{{ max_file_size }}以下</p>
+        </div>
+        
+        <form id="uploadForm" action="/process" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="xlsb_file">xlsbファイル (.xlsb):</label>
+                <input type="file" id="xlsb_file" name="xlsb_file" accept=".xlsb" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="template_file">テンプレートファイル (.xlsx/.xlsm):</label>
+                <input type="file" id="template_file" name="template_file" accept=".xlsx,.xlsm" required>
+            </div>
+            
+            <button type="submit" id="submitBtn">変換実行</button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p id="loadingText">ファイルを処理中です...</p>
+        </div>
+        
+        <div class="success" id="success">
+            <div class="success-icon">✓</div>
+            <p id="successText">処理が完了しました！</p>
+        </div>
+        
+        <div class="error" id="error">
+            <div class="error-icon">✗</div>
+            <p id="errorText">エラーが発生しました。</p>
+        </div>
+    </div>
+    
+    <script>
+        // サーバーから渡されたファイル名をJavaScriptで使用
+        window.OUTPUT_FILENAME = "{{ output_filename }}";
+    </script>
+    <script src="/static/js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  file-converter-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: file-converter-app
+    ports:
+      - "8080:8000"  # ポート8080でアクセス可能（WSL環境対応）
+    env_file:
+      - .env
+    environment:
+      # 追加の環境変数があればここに記載
+      - ENVIRONMENT=production
+    volumes:
+      # ログ出力用（オプション）
+      - ./logs:/app/logs
+      # ソースコードのホットリロード用（開発時）
+      - ./src:/app/src
+      - ./main_clean.py:/app/main_clean.py
+    restart: always  # サーバー再起動時に自動起動
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - file-converter-network
+
+networks:
+  file-converter-network:
+    driver: bridge
+
+volumes:
+  logs:
+    driver: local
