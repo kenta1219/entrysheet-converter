@@ -6,6 +6,7 @@ import uvicorn
 from pathlib import Path
 
 from src.infrastructure.container import container
+from src.infrastructure.config import OUTPUT_FILENAME
 
 
 def create_app() -> FastAPI:
@@ -62,15 +63,10 @@ def create_app() -> FastAPI:
     async def get_config():
         """現在の設定を返す（デバッグ用）"""
         return {
-            "extract_start_row": config.extract_start_row,
-            "max_extract_count": config.max_extract_count,
-            "write_start_column": config.write_start_column,
             "max_file_size": config.max_file_size,
             "source_sheet_name": config.source_sheet_name,
             "target_sheet_name": config.target_sheet_name,
-            "target_column": config.target_column,
-            "target_row": config.target_row,
-            "output_filename": config.output_filename
+            "output_filename": OUTPUT_FILENAME
         }
     
     return app

@@ -40,8 +40,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     const a = document.createElement('a');
                     a.href = url;
                     
-                    // フォルダ構造付きのファイル名を生成
-                    const filename = generateDownloadPath();
+                    // サーバーから返されるファイル名をそのまま使用
+                    const contentDisposition = response.headers.get('content-disposition');
+                    let filename = '【電子マネー】包括代理加盟店店子申請フォーマット（割賦販売法対象外）.xlsx';
+                    if (contentDisposition) {
+                        const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                        if (filenameMatch) {
+                            filename = filenameMatch[1];
+                        }
+                    }
                     a.download = filename;
                     
                     document.body.appendChild(a);
@@ -199,15 +206,4 @@ document.addEventListener('DOMContentLoaded', function() {
     // ドラッグ&ドロップ機能を初期化
     setupDragAndDrop();
 
-    // フォルダ構造付きファイル名を生成
-    function generateDownloadPath() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const dateFolder = `${year}${month}${day}`;
-        
-        const filename = window.OUTPUT_FILENAME || '店子申請_転記済.xlsx';
-        return `AEON_電子マネー/${dateFolder}/${filename}`;
-    }
 });
