@@ -1,17 +1,33 @@
-from ..domain.services import (
-    FileValidationService, DataExtractionService, DataWriteService
-)
-from ..application.use_cases import (
-    FileProcessingUseCase, ConfigurationUseCase, HealthCheckUseCase
-)
-from ..presentation.controllers.file_controller import FileProcessingController
+from ..application.batch_use_cases import BatchProcessingUseCase
 from ..presentation.controllers.health_controller import HealthController
 from ..presentation.controllers.web_controller import WebController
-from .repositories import (
-    PandasXlsbReaderRepository, OpenpyxlXlsxWriterRepository,
-    BasicFileValidatorRepository, StructuredLoggerRepository
-)
+from ..presentation.controllers.batch_controller import BatchProcessingController
+from .repositories import StructuredLoggerRepository
+from .template_repository import TemplateRepository
 from .config import AppConfig, ConfigManager
+
+
+class HealthCheckUseCase:
+    """ヘルスチェックユースケース"""
+    
+    def __init__(self, logger_repository: StructuredLoggerRepository):
+        self._logger = logger_repository
+    
+    def check_health(self) -> dict:
+        """ヘルスチェックを実行"""
+        try:
+            self._logger.log_info("ヘルスチェック実行")
+            return {
+                "status": "healthy",
+                "timestamp": "2025-01-01T00:00:00Z",
+                "version": "2.0.0"
+            }
+        except Exception as e:
+            self._logger.log_error(f"ヘルスチェックエラー: {str(e)}")
+            return {
+                "status": "unhealthy",
+                "error": str(e)
+            }
 
 
 class DIContainer:
@@ -31,69 +47,6 @@ class DIContainer:
             self._instances['logger_repository'] = StructuredLoggerRepository()
         return self._instances['logger_repository']
     
-    def get_xlsb_reader_repository(self) -> PandasXlsbReaderRepository:
-        """xlsb読み込みリポジトリを取得"""
-        if 'xlsb_reader_repository' not in self._instances:
-            self._instances['xlsb_reader_repository'] = PandasXlsbReaderRepository()
-        return self._instances['xlsb_reader_repository']
-    
-    def get_xlsx_writer_repository(self) -> OpenpyxlXlsxWriterRepository:
-        """xlsx書き込みリポジトリを取得"""
-        if 'xlsx_writer_repository' not in self._instances:
-            self._instances['xlsx_writer_repository'] = OpenpyxlXlsxWriterRepository()
-        return self._instances['xlsx_writer_repository']
-    
-    def get_file_validator_repository(self) -> BasicFileValidatorRepository:
-        """ファイルバリデーションリポジトリを取得"""
-        if 'file_validator_repository' not in self._instances:
-            self._instances['file_validator_repository'] = BasicFileValidatorRepository()
-        return self._instances['file_validator_repository']
-    
-    def get_file_validation_service(self) -> FileValidationService:
-        """ファイルバリデーションサービスを取得"""
-        if 'file_validation_service' not in self._instances:
-            self._instances['file_validation_service'] = FileValidationService(
-                self.get_file_validator_repository(),
-                self.get_logger_repository()
-            )
-        return self._instances['file_validation_service']
-    
-    def get_data_extraction_service(self) -> DataExtractionService:
-        """データ抽出サービスを取得"""
-        if 'data_extraction_service' not in self._instances:
-            self._instances['data_extraction_service'] = DataExtractionService(
-                self.get_xlsb_reader_repository(),
-                self.get_logger_repository()
-            )
-        return self._instances['data_extraction_service']
-    
-    def get_data_write_service(self) -> DataWriteService:
-        """データ書き込みサービスを取得"""
-        if 'data_write_service' not in self._instances:
-            self._instances['data_write_service'] = DataWriteService(
-                self.get_xlsx_writer_repository(),
-                self.get_logger_repository()
-            )
-        return self._instances['data_write_service']
-    
-    def get_file_processing_use_case(self) -> FileProcessingUseCase:
-        """ファイル処理ユースケースを取得"""
-        if 'file_processing_use_case' not in self._instances:
-            self._instances['file_processing_use_case'] = FileProcessingUseCase(
-                self.get_file_validation_service(),
-                self.get_data_extraction_service(),
-                self.get_data_write_service(),
-                self.get_logger_repository(),
-                self._config.max_file_size
-            )
-        return self._instances['file_processing_use_case']
-    
-    def get_configuration_use_case(self) -> ConfigurationUseCase:
-        """設定ユースケースを取得"""
-        if 'configuration_use_case' not in self._instances:
-            self._instances['configuration_use_case'] = ConfigurationUseCase()
-        return self._instances['configuration_use_case']
-    
     def get_health_check_use_case(self) -> HealthCheckUseCase:
         """ヘルスチェックユースケースを取得"""
         if 'health_check_use_case' not in self._instances:
@@ -101,16 +54,6 @@ class DIContainer:
                 self.get_logger_repository()
             )
         return self._instances['health_check_use_case']
-    
-    def get_file_processing_controller(self) -> FileProcessingController:
-        """ファイル処理コントローラーを取得"""
-        if 'file_processing_controller' not in self._instances:
-            self._instances['file_processing_controller'] = FileProcessingController(
-                self.get_file_processing_use_case(),
-                self.get_configuration_use_case(),
-                self._config
-            )
-        return self._instances['file_processing_controller']
     
     def get_health_controller(self) -> HealthController:
         """ヘルスコントローラーを取得"""
@@ -125,6 +68,30 @@ class DIContainer:
         if 'web_controller' not in self._instances:
             self._instances['web_controller'] = WebController()
         return self._instances['web_controller']
+    
+    def get_template_repository(self) -> TemplateRepository:
+        """テンプレートリポジトリを取得"""
+        if 'template_repository' not in self._instances:
+            self._instances['template_repository'] = TemplateRepository()
+        return self._instances['template_repository']
+    
+    def get_batch_processing_use_case(self) -> BatchProcessingUseCase:
+        """一括処理ユースケースを取得"""
+        if 'batch_processing_use_case' not in self._instances:
+            self._instances['batch_processing_use_case'] = BatchProcessingUseCase(
+                self.get_template_repository()
+            )
+        return self._instances['batch_processing_use_case']
+    
+    def get_batch_processing_controller(self) -> BatchProcessingController:
+        """一括処理コントローラーを取得"""
+        if 'batch_processing_controller' not in self._instances:
+            self._instances['batch_processing_controller'] = BatchProcessingController(
+                self.get_batch_processing_use_case(),
+                self.get_template_repository()
+            )
+        return self._instances['batch_processing_controller']
+    
 
 
 # グローバルコンテナインスタンス

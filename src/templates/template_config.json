@@ -1,0 +1,106 @@
+{
+  "templates": [
+    {
+      "id": "aeon_electronic_money",
+      "name": "AEON電子マネー店子申請",
+      "filename": "【電子マネー】包括代理加盟店店子申請フォーマット（割賦販売法対象外）.xlsx",
+      "output_filename": "【電子マネー】包括代理加盟店店子申請フォーマット（割賦販売法対象外）.xlsx",
+      "description": "電子マネー用の店子申請フォーマット",
+      "is_active": true,
+      "mapping": {
+        "source_sheet": "加盟店申込書_施設名",
+        "target_sheet": "店子申請一覧",
+        "target_row": 14,
+        "cell_mappings": [
+          {"target": "E14", "source": "F40", "type": "single"},
+          {"target": "F14", "source": "F41", "type": "single"},
+          {"target": "G14", "source": "F42", "type": "single"},
+          {"target": "H14", "source": "F43", "type": "single"},
+          {"target": "I14", "source": "F44+F46+F48", "type": "concat_cells"},
+          {"target": "J14", "source": "F45+F47+F49", "type": "concat_cells"},
+          {"target": "K14", "source": "F50", "type": "single"},
+          {"target": "L14", "source": "F88", "type": "single"},
+          {"target": "M14", "source": "F89", "type": "single"},
+          {"target": "N14", "source": "F91", "type": "single"},
+          {"target": "O14", "source": "F92+F94+F96", "type": "concat_cells"},
+          {"target": "P14", "source": "F93+F95+F97", "type": "concat_cells"},
+          {"target": "Q14", "source": "F98", "type": "single"},
+          {"target": "R14", "source": "F51", "type": "single"},
+          {"target": "S14", "source": "F52", "type": "single"},
+          {"target": "U14", "source": "F56+F58", "type": "concat_cells", "separator": "　"},
+          {"target": "V14", "source": "F57+F59", "type": "concat_cells", "separator": " "},
+          {"target": "W14", "source": "F61", "type": "single"},
+          {"target": "X14", "source": "F60", "type": "single"},
+          {"target": "Y14", "source": "F62", "type": "single"},
+          {"target": "Z14", "source": "F63+F65+F67", "type": "concat_cells", "format_rules": {"F67": "zenkaku_int"}},
+          {"target": "AA14", "source": "F64+F66+F68", "type": "concat_cells", "format_rules": {"F68": "hankaku_int"}},
+          {"target": "AB14", "source": "F69", "type": "single"},
+          {"target": "AC14", "source": "F105", "type": "single"},
+          {"target": "AD14", "source": "F107", "type": "single"},
+          {"target": "AE14", "source": "F109", "type": "single"},
+          {"target": "AF14", "source": "F108", "type": "single"},
+          {"target": "AG14", "source": "F106", "type": "single"}
+        ]
+      }
+    },
+    {
+      "id": "jaccs",
+      "name": "JACCS店子申請",
+      "filename": "【統一版】店子申請フォーマット（対面用）.xlsx",
+      "output_filename": "【統一版】店子申請フォーマット（対面用）.xlsx",
+      "description": "JACCS用の申請フォーマット",
+      "is_active": true
+    },
+    {
+      "id": "jcb",
+      "name": "JCB店子申請",
+      "filename": "【店頭】JCB加盟店登録_店子登録申請IF仕様書（画面UL DL）.xlsx",
+      "output_filename": "【店頭】JCB加盟店登録_店子登録申請IF仕様書（画面UL DL）.xlsx",
+      "description": "JCB用の申請フォーマット",
+      "is_active": true
+    },
+    {
+      "id": "aeon_pay",
+      "name": "イオンペイ包括代理加盟店店子申請",
+      "filename": "【イオンペイ】包括代理加盟店店子申請フォーマット.xlsx",
+      "output_filename": "【イオンペイ】包括代理加盟店店子申請フォーマット.xlsx",
+      "description": "イオンペイ用の店子申請フォーマット",
+      "is_active": true,
+      "mapping": {
+        "source_sheet": "加盟店申込書_施設名",
+        "target_sheet": "店子申請一覧",
+        "target_row": 16,
+        "cell_mappings": [
+          {"target": "E16", "source": "F40", "type": "single"},
+          {"target": "F16", "source": "F41", "type": "single"},
+          {"target": "G16", "source": "F42", "type": "single"},
+          {"target": "H16", "source": "F43", "type": "single"},
+          {"target": "I16", "source": "F44+F46+F48", "type": "concat_cells"},
+          {"target": "J16", "source": "F45+F47+F49", "type": "concat_cells"},
+          {"target": "K16", "source": "F50", "type": "single"},
+          {"target": "L16", "source": "F88", "type": "single"},
+          {"target": "M16", "source": "F89", "type": "single"},
+          {"target": "N16", "source": "F91", "type": "single"},
+          {"target": "O16", "source": "F92+F94+F96", "type": "concat_cells"},
+          {"target": "P16", "source": "F93+F95+F97", "type": "concat_cells"},
+          {"target": "S16", "source": "F98", "type": "single"},
+          {"target": "T16", "source": "F51", "type": "single"},
+          {"target": "U16", "source": "F52", "type": "single"},
+          {"target": "W16", "source": "F56+F58", "type": "concat_cells", "separator": "　"},
+          {"target": "X16", "source": "F57+F59", "type": "concat_cells", "separator": " "},
+          {"target": "Y16", "source": "F61", "type": "single"},
+          {"target": "Z16", "source": "F60", "type": "single"},
+          {"target": "AA16", "source": "F62", "type": "single"},
+          {"target": "AB16", "source": "F63+F65+F67", "type": "concat_cells", "format_rules": {"F67": "zenkaku_int"}},
+          {"target": "AC16", "source": "F64+F66+F68", "type": "concat_cells", "format_rules": {"F68": "hankaku_int"}},
+          {"target": "AD16", "source": "F69", "type": "single"},
+          {"target": "AE16", "source": "F105", "type": "single"},
+          {"target": "AF16", "source": "F107", "type": "single"},
+          {"target": "AG16", "source": "F109", "type": "single"},
+          {"target": "AH16", "source": "F108", "type": "single"},
+          {"target": "AI16", "source": "F106", "type": "single"}
+        ]
+      }
+    }
+  ]
+}

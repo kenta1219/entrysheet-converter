@@ -13,25 +13,59 @@
             <h3>機能説明</h3>
             <ul>
                 <li>.xlsbファイルの「加盟店申込書_施設名」シートのF列15行目以降から必要なデータを抽出</li>
-                <li>抽出したデータを.xlsxテンプレートの「店子申請一覧」シート14行目に横展開で書き込み</li>
-                <li>処理済みファイルを「{{ output_filename }}」として返却</li>
+                <li>抽出したデータを複数の.xlsxテンプレートに一括で書き込み処理</li>
+                <li>処理済みファイルをZIP形式で一括ダウンロード</li>
             </ul>
             <p><strong>制限:</strong> ファイルサイズは{{ max_file_size }}以下</p>
         </div>
         
-        <form id="uploadForm" action="/process" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="xlsb_file">xlsbファイル (.xlsb):</label>
-                <input type="file" id="xlsb_file" name="xlsb_file" accept=".xlsb" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="template_file">テンプレートファイル (.xlsx/.xlsm):</label>
-                <input type="file" id="template_file" name="template_file" accept=".xlsx,.xlsm" required>
-            </div>
-            
-            <button type="submit" id="submitBtn">変換実行</button>
-        </form>
+        <!-- 一括処理フォーム -->
+        <div class="batch-form-container">
+            <h3>一括処理</h3>
+            <form id="batchForm" action="/batch-process" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="batch_xlsb_file">xlsbファイル (.xlsb):</label>
+                    <input type="file" id="batch_xlsb_file" name="xlsb_file" accept=".xlsb" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="facility_name">施設名:</label>
+                    <input type="text" id="facility_name" name="facility_name"
+                           placeholder="例: 山田商店" maxlength="50" required>
+                    <small>※ファイル名に使用されます（50文字以内）</small>
+                </div>
+                
+                <div class="template-selection">
+                    <h4>処理対象テンプレート:</h4>
+                    <div id="template-checkboxes" class="checkbox-group">
+                        <!-- テンプレート選択肢 -->
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="selected_templates" value="aeon_electronic_money" checked>
+                            <span>AEON電子マネー</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="selected_templates" value="aeon_pay" checked>
+                            <span>イオンペイ</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="selected_templates" value="jaccs" checked>
+                            <span>JACCS</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="selected_templates" value="jcb" checked>
+                            <span>JCB</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="output-preview">
+                    <h4>出力ファイル名プレビュー:</h4>
+                    <span id="zipFilenamePreview">施設名_20250805.zip</span>
+                </div>
+                
+                <button type="submit" id="batchSubmitBtn">一括変換実行</button>
+            </form>
+        </div>
         
         <div class="loading" id="loading">
             <div class="spinner"></div>

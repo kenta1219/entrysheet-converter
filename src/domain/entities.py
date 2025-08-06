@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 from pathlib import Path
+from datetime import datetime
 
 
 @dataclass
@@ -138,6 +139,84 @@ class ProcessingResult:
     @classmethod
     def error_result(cls, error_message: str) -> 'ProcessingResult':
         """エラー結果を作成"""
+        return cls(
+            success=False,
+            output_filename="",
+            error_message=error_message
+        )
+
+
+@dataclass
+class CellMapping:
+    """セルマッピング情報"""
+    target: str  # 出力先セル (例: "E16")
+    source: str  # 参照元セル (例: "F40" or "F44+F46+F48")
+    type: str = "single"  # "single", "concat_cells"
+    separator: str = ""  # 結合時のセパレータ
+    format_rules: dict = None  # フォーマットルール
+
+    def __post_init__(self):
+        if self.format_rules is None:
+            self.format_rules = {}
+
+
+@dataclass
+class TemplateMapping:
+    """テンプレートマッピング情報"""
+    source_sheet: str
+    target_sheet: str
+    target_row: int
+    cell_mappings: List[CellMapping]
+
+
+@dataclass
+class TemplateInfo:
+    """テンプレート情報エンティティ"""
+    id: str
+    name: str
+    filename: str
+    output_filename: str
+    description: str
+    is_active: bool = True
+    mapping: TemplateMapping = None
+
+
+@dataclass
+class BatchProcessRequest:
+    """一括処理リクエストエンティティ"""
+    xlsb_file: 'FileInfo'
+    facility_name: str
+    selected_templates: List[str]
+    process_date: datetime
+
+
+@dataclass
+class BatchProcessResult:
+    success: bool
+    zip_filename: Optional[str] = None
+    output_path: Optional[str] = None   # ←追加
+    output_filename: Optional[str] = None  # ←追加
+    processed_files: List[str] = None
+    error_message: str = ""
+
+    @classmethod
+    def success_result(
+        cls,
+        zip_filename: str,
+        output_path: str,
+        processed_files: List[str],
+        output_filename: Optional[str] = None
+    ) -> 'BatchProcessResult':
+        return cls(
+            success=True,
+            zip_filename=zip_filename,
+            output_path=output_path,
+            output_filename=output_filename or zip_filename,
+            processed_files=processed_files
+        )
+
+    @classmethod
+    def error_result(cls, error_message: str) -> 'BatchProcessResult':
         return cls(
             success=False,
             output_filename="",

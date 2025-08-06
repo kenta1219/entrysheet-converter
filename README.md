@@ -85,10 +85,21 @@ src/
 
 ## 機能
 
+### 単一ファイル処理
 - .xlsbファイルの「加盟店申込書_施設名」シートから特定のセル（F41, F42, F43等）の値を抽出
 - 一部のセルは複数セルの合計値を計算（例：F45+F47+F49）
 - 抽出したデータを.xlsxテンプレートの「店子申請一覧」シート14行目の指定列（E14, F14, G14等）に書き込み
 - 処理済みファイルを「【電子マネー】包括代理加盟店店子申請フォーマット（割賦販売法対象外）.xlsx」として返却
+
+### 一括処理機能 (v2.1)
+- 1つの.xlsbファイルを複数のテンプレートに対して一括処理
+- 対応テンプレート：
+  - AEON電子マネー
+  - イオンペイ
+  - JACCS
+  - JCB
+- 施設名と処理日付を含むZIPファイル名で一括ダウンロード（例：山田商店_20250805.zip）
+- タブ形式のUIで単一処理と一括処理を切り替え可能
 
 ### 抽出対象セル
 
@@ -130,6 +141,12 @@ E14, F14, G14, H14, I14, J14, K14, L14, M14, N14, O14, P14, Q14, R14, S14, U14, 
 ## 設定可能パラメータ
 
 環境変数で以下のパラメータを設定可能：
+
+### アプリケーション設定
+- `ENVIRONMENT`: 実行環境 (デフォルト: development)
+- `DEBUG`: デバッグモード (デフォルト: false)
+- `LOG_LEVEL`: ログレベル (デフォルト: INFO)
+- `LOG_FORMAT`: ログフォーマット
 
 ### ファイル処理設定
 - `MAX_FILE_SIZE`: 最大ファイルサイズ (デフォルト: 10485760 = 10MB)
@@ -388,19 +405,41 @@ docker run -p 8000:8000 \
 
 ### Webフォーム (推奨)
 
+#### 単一ファイル処理
 1. http://localhost:8000 にアクセス
-2. .xlsbファイルと.xlsxテンプレートファイルを選択
-3. 「変換実行」ボタンをクリック
-4. 処理済みファイルがダウンロードされます
+2. 「単一処理」タブを選択
+3. .xlsbファイルと.xlsxテンプレートファイルを選択
+4. 「変換実行」ボタンをクリック
+5. 処理済みファイルがダウンロードされます
+
+#### 一括処理
+1. http://localhost:8000 にアクセス
+2. 「一括処理」タブを選択
+3. .xlsbファイルを選択
+4. 施設名を入力
+5. 処理対象のテンプレートを選択（複数選択可能）
+6. 「一括変換実行」ボタンをクリック
+7. ZIPファイルがダウンロードされます
 
 ### cURL使用例
 
 ```bash
-# ファイル変換
+# 単一ファイル変換
 curl -X POST "http://localhost:8000/process" \
   -F "xlsb_file=@source.xlsb" \
   -F "template_file=@template.xlsx" \
   -o output.xlsx
+
+# 一括処理
+curl -X POST "http://localhost:8000/batch-process" \
+  -F "xlsb_file=@source.xlsb" \
+  -F "facility_name=山田商店" \
+  -F "selected_templates=aeon_emoney" \
+  -F "selected_templates=aeon_pay" \
+  -o batch_output.zip
+
+# 利用可能なテンプレート一覧取得
+curl http://localhost:8000/templates
 
 # ヘルスチェック
 curl http://localhost:8000/health

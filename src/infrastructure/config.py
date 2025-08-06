@@ -1,4 +1,5 @@
 import os
+import logging
 from dataclasses import dataclass
 from typing import Optional
 
@@ -21,6 +22,14 @@ class AppConfig:
     host: str = "0.0.0.0"
     port: int = 8000
     
+    # ロギング設定
+    log_level: str = "INFO"
+    log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    
+    # 環境設定
+    environment: str = "development"
+    debug: bool = False
+    
     @classmethod
     def from_env(cls) -> 'AppConfig':
         """環境変数から設定を読み込み"""
@@ -29,7 +38,19 @@ class AppConfig:
             source_sheet_name=os.getenv("SOURCE_SHEET_NAME", "加盟店申込書_施設名"),
             target_sheet_name=os.getenv("TARGET_SHEET_NAME", "店子申請一覧"),
             host=os.getenv("HOST", "0.0.0.0"),
-            port=int(os.getenv("PORT", "8000"))
+            port=int(os.getenv("PORT", "8000")),
+            log_level=os.getenv("LOG_LEVEL", "INFO"),
+            log_format=os.getenv("LOG_FORMAT", "%(asctime)s - %(name)s - %(levelname)s - %(message)s"),
+            environment=os.getenv("ENVIRONMENT", "development"),
+            debug=os.getenv("DEBUG", "false").lower() == "true"
+        )
+    
+    def setup_logging(self):
+        """ロギング設定を適用"""
+        logging.basicConfig(
+            level=getattr(logging, self.log_level.upper()),
+            format=self.log_format,
+            force=True
         )
 
 

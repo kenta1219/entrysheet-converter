@@ -1,19 +1,25 @@
-from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, BackgroundTasks
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from typing import List
 import uvicorn
+import logging
 from pathlib import Path
+import os
 
 from src.infrastructure.container import container
 from src.infrastructure.config import OUTPUT_FILENAME
+
+logger = logging.getLogger(__name__)
 
 
 def create_app() -> FastAPI:
     """FastAPIアプリケーションを作成"""
     
-    # 設定を取得
+    # 設定を取得してロギングを設定
     config = container.get_config()
+    config.setup_logging()
     
     # FastAPIアプリケーションを初期化
     app = FastAPI(
@@ -37,27 +43,55 @@ def create_app() -> FastAPI:
         app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
     
     # コントローラーを取得
-    file_processing_controller = container.get_file_processing_controller()
     health_controller = container.get_health_controller()
     web_controller = container.get_web_controller()
+    batch_processing_controller = container.get_batch_processing_controller()
     
     @app.get("/", response_class=HTMLResponse)
     async def get_upload_form():
         """アップロードフォームを返す"""
-        return web_controller.get_upload_form()
+        try:
+            return web_controller.get_upload_form()
+        except Exception as e:
+            logger.error(f"フォーム表示エラー: {str(e)}")
+            raise HTTPException(status_code=500, detail="フォームの表示に失敗しました")
     
-    @app.post("/process")
-    async def process_files(
+    @app.post("/batch-process")
+    async def batch_process(
         xlsb_file: UploadFile = File(...),
-        template_file: UploadFile = File(...)
+        facility_name: str = Form(...),
+        selected_templates: List[str] = Form(default=[])
     ):
-        """ファイル処理エンドポイント"""
-        return await file_processing_controller.process_files(xlsb_file, template_file)
+        """一括処理エンドポイント"""
+        try:
+            logger.info(f"一括処理開始 - ファイル: {xlsb_file.filename}, 施設名: {facility_name}")
+
+            # コントローラーがFileResponseを直接返すので、そのまま返す
+            return await batch_processing_controller.batch_process(
+                xlsb_file, facility_name, selected_templates
+            )
+
+        except Exception as e:
+            logger.error(f"一括処理エラー: {str(e)}")
+            raise
+    
+    @app.get("/templates")
+    async def get_templates():
+        """利用可能なテンプレート一覧を取得"""
+        try:
+            return batch_processing_controller.get_available_templates()
+        except Exception as e:
+            logger.error(f"テンプレート一覧取得エラー: {str(e)}")
+            raise
     
     @app.get("/health")
     async def health_check():
         """ヘルスチェックエンドポイント"""
-        return health_controller.check_health()
+        try:
+            return health_controller.check_health()
+        except Exception as e:
+            logger.error(f"ヘルスチェックエラー: {str(e)}")
+            raise HTTPException(status_code=500, detail="ヘルスチェックに失敗しました")
     
     @app.get("/config")
     async def get_config():
