@@ -1,7 +1,9 @@
 from ..application.batch_use_cases import BatchProcessingUseCase
+from ..application.multi_file_use_cases import MultiFileProcessingUseCase
 from ..presentation.controllers.health_controller import HealthController
 from ..presentation.controllers.web_controller import WebController
 from ..presentation.controllers.batch_controller import BatchProcessingController
+from ..presentation.controllers.multi_file_controller import MultiFileProcessingController
 from .repositories import StructuredLoggerRepository
 from .template_repository import TemplateRepository
 from .config import AppConfig, ConfigManager
@@ -92,6 +94,22 @@ class DIContainer:
             )
         return self._instances['batch_processing_controller']
     
+    def get_multi_file_processing_use_case(self) -> MultiFileProcessingUseCase:
+        """複数ファイル処理ユースケースを取得"""
+        if 'multi_file_processing_use_case' not in self._instances:
+            self._instances['multi_file_processing_use_case'] = MultiFileProcessingUseCase(
+                self.get_template_repository()
+            )
+        return self._instances['multi_file_processing_use_case']
+    
+    def get_multi_file_processing_controller(self) -> MultiFileProcessingController:
+        """複数ファイル処理コントローラーを取得"""
+        if 'multi_file_processing_controller' not in self._instances:
+            self._instances['multi_file_processing_controller'] = MultiFileProcessingController(
+                self.get_multi_file_processing_use_case(),
+                self.get_template_repository()
+            )
+        return self._instances['multi_file_processing_controller']
 
 
 # グローバルコンテナインスタンス

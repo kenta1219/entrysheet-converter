@@ -9,19 +9,52 @@
     <div class="container">
         <h1>{{ title }}</h1>
         
+        <!-- 処理モード選択 -->
+        <div class="feature-selector" id="featureSelector">
+            <h2>処理モード選択</h2>
+            <div class="mode-cards">
+                <div class="mode-card" data-mode="batch">
+                    <div class="mode-icon">📄➡️📄📄📄</div>
+                    <h3>従来の一括処理</h3>
+                    <p>1つのxlsbファイルを複数のテンプレートに転記</p>
+                    <ul class="mode-features">
+                        <li>✅ 複数テンプレート同時処理</li>
+                        <li>✅ ZIPファイル出力</li>
+                        <li>✅ テンプレート別設定</li>
+                    </ul>
+                    <button class="select-mode-btn" data-target="batch">この機能を使用</button>
+                </div>
+                
+                <div class="mode-card" data-mode="multi-file">
+                    <div class="mode-icon">📄📄📄➡️📄</div>
+                    <h3>一括集約処理</h3>
+                    <p>複数のxlsbファイルを1つのテンプレートに集約</p>
+                    <ul class="mode-features">
+                        <li>✅ 複数ファイル同時処理</li>
+                        <li>✅ 1つのExcelに集約</li>
+                        <li>✅ 行単位での追加</li>
+                    </ul>
+                    <button class="select-mode-btn" data-target="multi-file">この機能を使用</button>
+                </div>
+            </div>
+        </div>
+        
         <div class="info">
-            <h3>機能説明</h3>
-            <ul>
-                <li>.xlsbファイルの「加盟店申込書_施設名」シートのF列15行目以降から必要なデータを抽出</li>
-                <li>抽出したデータを複数の.xlsxテンプレートに一括で書き込み処理</li>
-                <li>処理済みファイルをZIP形式で一括ダウンロード</li>
-            </ul>
             <p><strong>制限:</strong> ファイルサイズは{{ max_file_size }}以下</p>
         </div>
         
-        <!-- 一括処理フォーム -->
-        <div class="batch-form-container">
-            <h3>一括処理</h3>
+        <!-- 従来の一括処理フォーム -->
+        <div id="batch-processing-form" class="processing-form" style="display: none;">
+            <h3>従来の一括処理</h3>
+            <div class="info-box">
+                <h4>機能説明</h4>
+                <ul>
+                    <li>1つのxlsbファイルから「加盟店申込書_施設名」シートのデータを抽出</li>
+                    <li>抽出したデータを複数の.xlsxテンプレートに一括で書き込み処理</li>
+                    <li>処理済みファイルをZIP形式で一括ダウンロード</li>
+                </ul>
+            </div>
+            
             <form id="batchForm" action="/batch-process" method="post" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="batch_xlsb_file">xlsbファイル (.xlsb):</label>
@@ -38,7 +71,6 @@
                 <div class="template-selection">
                     <h4>処理対象テンプレート:</h4>
                     <div id="template-checkboxes" class="checkbox-group">
-                        <!-- テンプレート選択肢 -->
                         <label class="checkbox-item">
                             <input type="checkbox" name="selected_templates" value="aeon_electronic_money" checked>
                             <span>AEON電子マネー</span>
@@ -63,7 +95,70 @@
                     <span id="zipFilenamePreview">施設名_20250805.zip</span>
                 </div>
                 
-                <button type="submit" id="batchSubmitBtn">一括変換実行</button>
+                <button type="submit" id="batchSubmitBtn" class="submit-btn">
+                    <span class="btn-text">一括変換実行</span>
+                    <span class="btn-loading" style="display: none;">
+                        <i class="spinner"></i> 処理中...
+                    </span>
+                </button>
+            </form>
+        </div>
+
+        <!-- 複数ファイル一括集約処理フォーム -->
+        <div id="multi-file-processing-form" class="processing-form" style="display: none;">
+            <h3>一括集約処理</h3>
+            <div class="info-box">
+                <h4>機能説明</h4>
+                <ul>
+                    <li>複数のxlsbファイルから各々「加盟店申込書_施設名」シートのデータを抽出</li>
+                    <li>抽出したデータを1つのテンプレートに順次行追加（14行目から開始）</li>
+                    <li>処理済みファイルを単一のExcelファイルとしてダウンロード</li>
+                </ul>
+            </div>
+            
+            <form id="multiFileForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="xlsb_files">xlsbファイル選択（複数可）</label>
+                    <div class="file-drop-zone" id="multiFileDropZone">
+                        <input type="file" id="xlsb_files" name="xlsb_files"
+                               multiple accept=".xlsb" required>
+                        <div class="drop-zone-content">
+                            <i class="upload-icon">📁</i>
+                            <p>複数のxlsbファイルをドラッグ&ドロップ<br>またはクリックして選択</p>
+                            <small>最大20ファイルまで対応</small>
+                        </div>
+                    </div>
+                    <div id="selectedFilesList" class="selected-files-list"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="target_template">出力先テンプレート</label>
+                    <select id="target_template" name="target_template" required>
+                        <option value="">テンプレートを選択してください</option>
+                        <option value="aeon_electronic_money">AEON電子マネー</option>
+                        <option value="aeon_pay">イオンペイ</option>
+                        <option value="jaccs">JACCS</option>
+                        <option value="jcb">JCB</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="start_row">開始行番号</label>
+                    <input type="number" id="start_row" name="start_row"
+                           value="14" min="1" max="1000" required>
+                    <small>テンプレートの何行目から書き込みを開始するか</small>
+                </div>
+
+                <div id="facilityNamesContainer" class="facility-names-container">
+                    <!-- 動的に施設名入力フィールドが追加される -->
+                </div>
+
+                <button type="submit" id="multiFileSubmitBtn" class="submit-btn">
+                    <span class="btn-text">一括集約処理実行</span>
+                    <span class="btn-loading" style="display: none;">
+                        <i class="spinner"></i> 処理中...
+                    </span>
+                </button>
             </form>
         </div>
         

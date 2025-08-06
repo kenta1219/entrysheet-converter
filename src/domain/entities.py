@@ -239,3 +239,95 @@ class ValidationResult:
     def invalid(cls, message: str) -> 'ValidationResult':
         """無効な結果を作成"""
         return cls(is_valid=False, error_message=message)
+
+
+@dataclass
+class MultiFileProcessRequest:
+    """複数ファイル処理リクエストエンティティ"""
+    xlsb_files: List['FileInfo']
+    target_template_id: str
+    facility_names: List[str]
+    process_date: datetime
+    start_row: int = 14
+    
+    def __post_init__(self):
+        """バリデーション"""
+        if len(self.xlsb_files) != len(self.facility_names):
+            raise ValueError("xlsbファイル数と施設名数が一致しません")
+        
+        if len(self.xlsb_files) == 0:
+            raise ValueError("xlsbファイルが指定されていません")
+        
+        if not self.target_template_id.strip():
+            raise ValueError("テンプレートIDが指定されていません")
+
+
+@dataclass
+class MultiFileProcessResult:
+    """複数ファイル処理結果エンティティ"""
+    success: bool
+    output_filename: str
+    output_path: Optional[str] = None
+    output_content: Optional[bytes] = None
+    processed_count: int = 0
+    failed_files: List[str] = None
+    error_message: Optional[str] = None
+    
+    def __post_init__(self):
+        if self.failed_files is None:
+            self.failed_files = []
+    
+    @classmethod
+    def success_result(
+        cls,
+        filename: str,
+        output_path: str,
+        processed_count: int,
+        output_content: Optional[bytes] = None
+    ) -> 'MultiFileProcessResult':
+        """成功結果を作成"""
+        return cls(
+            success=True,
+            output_filename=filename,
+            output_path=output_path,
+            output_content=output_content,
+            processed_count=processed_count,
+            failed_files=[]
+        )
+    
+    @classmethod
+    def error_result(cls, error_message: str) -> 'MultiFileProcessResult':
+        """エラー結果を作成"""
+        return cls(
+            success=False,
+            output_filename="",
+            error_message=error_message,
+            failed_files=[]
+        )
+
+
+@dataclass
+class RowData:
+    """行データエンティティ"""
+    row_number: int
+    facility_name: str
+    extracted_values: List[str]
+    source_filename: str
+    
+    def __post_init__(self):
+        """バリデーション"""
+        if self.row_number < 1:
+            raise ValueError("行番号は1以上である必要があります")
+        
+        if not self.facility_name.strip():
+            raise ValueError("施設名が指定されていません")
+
+
+@dataclass
+class FeatureFlags:
+    """機能フラグ設定エンティティ"""
+    enable_multi_file_processing: bool = True
+    enable_batch_processing: bool = True
+    max_multi_files: int = 20
+    max_batch_templates: int = 10
+    max_multi_file_rows: int = 1000

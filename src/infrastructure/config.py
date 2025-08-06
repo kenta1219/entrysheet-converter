@@ -30,9 +30,29 @@ class AppConfig:
     environment: str = "development"
     debug: bool = False
     
+    # 機能フラグ設定
+    feature_flags: 'FeatureFlags' = None
+    
+    def __post_init__(self):
+        """初期化後処理"""
+        if self.feature_flags is None:
+            from ..domain.entities import FeatureFlags
+            self.feature_flags = FeatureFlags()
+    
     @classmethod
     def from_env(cls) -> 'AppConfig':
         """環境変数から設定を読み込み"""
+        from ..domain.entities import FeatureFlags
+        
+        # 機能フラグの設定
+        feature_flags = FeatureFlags(
+            enable_multi_file_processing=os.getenv("ENABLE_MULTI_FILE_PROCESSING", "true").lower() == "true",
+            enable_batch_processing=os.getenv("ENABLE_BATCH_PROCESSING", "true").lower() == "true",
+            max_multi_files=int(os.getenv("MAX_MULTI_FILES", "20")),
+            max_batch_templates=int(os.getenv("MAX_BATCH_TEMPLATES", "10")),
+            max_multi_file_rows=int(os.getenv("MAX_MULTI_FILE_ROWS", "1000"))
+        )
+        
         return cls(
             max_file_size=int(os.getenv("MAX_FILE_SIZE", "10485760")),
             source_sheet_name=os.getenv("SOURCE_SHEET_NAME", "加盟店申込書_施設名"),
@@ -42,7 +62,8 @@ class AppConfig:
             log_level=os.getenv("LOG_LEVEL", "INFO"),
             log_format=os.getenv("LOG_FORMAT", "%(asctime)s - %(name)s - %(levelname)s - %(message)s"),
             environment=os.getenv("ENVIRONMENT", "development"),
-            debug=os.getenv("DEBUG", "false").lower() == "true"
+            debug=os.getenv("DEBUG", "false").lower() == "true",
+            feature_flags=feature_flags
         )
     
     def setup_logging(self):

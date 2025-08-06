@@ -1,8 +1,10 @@
 import json
 import logging
 import tempfile
+import os
+import re
 from datetime import datetime
-from typing import List
+from typing import List, Dict, Optional
 import pandas as pd
 import openpyxl
 
@@ -208,6 +210,170 @@ class TemplateBasedFileProcessingRepository:
             return float(value)
         except (ValueError, TypeError):
             return value if value else ""
+    
+    def extract_data_from_xlsb(self, xlsb_file):
+        """xlsbファイルからデータを抽出（複数ファイル処理用）"""
+        from ..domain.entities import ExtractedData, ExtractionConfig
+        
+        with tempfile.NamedTemporaryFile(suffix='.xlsb', delete=False) as temp_file:
+            temp_file.write(xlsb_file.content)
+            temp_file.flush()
+            
+            try:
+                # xlsbファイルを読み込み
+                df = pd.read_excel(
+                    temp_file.name,
+                    sheet_name="加盟店申込書_施設名",  # デフォルトシート名
+                    engine='pyxlsb'
+                )
+                
+                # ExtractionConfigを使用してデータを抽出
+                extraction_config = ExtractionConfig()
+                extracted_values = []
+                
+                for cell_ref in extraction_config.cell_references:
+                    if cell_ref.is_sum:
+                        # 合計計算
+                        total = 0
+                        for cell in cell_ref.cells:
+                            value = self._get_cell_value(df, cell)
+                            try:
+                                total += float(value) if value else 0
+                            except (ValueError, TypeError):
+                                pass
+                        extracted_values.append(str(total))
+                        
+                    elif cell_ref.is_concat:
+                        # 文字列連結
+                        values = []
+                        for cell in cell_ref.cells:
+                            value = self._get_cell_value(df, cell)
+                            if value:
+                                values.append(str(value))
+                        extracted_values.append(cell_ref.separator.join(values))
+                        
+                    else:
+                        # 単一セル
+                        value = self._get_cell_value(df, cell_ref.cells[0])
+                        extracted_values.append(str(value) if value else "")
+                
+                return ExtractedData(
+                    values=extracted_values,
+                    source_sheet="加盟店申込書_施設名",
+                    source_references=extraction_config.cell_references
+                )
+                
+            except Exception as e:
+                raise Exception(f"xlsbデータ抽出エラー: {str(e)}")
+            finally:
+                try:
+                    os.unlink(temp_file.name)
+                except:
+                    pass
+    
+    def write_multiple_rows_to_template(self, template_file, template_info, row_data_list):
+        """テンプレートに複数行のデータを書き込み"""
+        logger.info(f"複数行書き込み開始 - 対象行数: {len(row_data_list)}")
+        
+        with tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False) as temp_template:
+            temp_template.write(template_file.content)
+            temp_template_path = temp_template.name
+        
+        try:
+            # Excelファイルを開く
+            workbook = openpyxl.load_workbook(temp_template_path)
+            worksheet = workbook[template_info.mapping.target_sheet]
+            
+            # 各行データを順次書き込み
+            for row_data in row_data_list:
+                self._write_single_row_data(worksheet, template_info.mapping, row_data)
+            
+            # 処理済みファイルを保存
+            with tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False) as temp_output:
+                workbook.save(temp_output.name)
+                temp_output_path = temp_output.name
+            
+            # バイナリデータとして読み込み
+            with open(temp_output_path, 'rb') as f:
+                result_content = f.read()
+            
+            logger.info(f"複数行書き込み完了 - 書き込み行数: {len(row_data_list)}")
+            return result_content
+            
+        except Exception as e:
+            logger.error(f"複数行書き込みエラー: {str(e)}")
+            raise
+        finally:
+            # 一時ファイルをクリーンアップ
+            try:
+                os.unlink(temp_template_path)
+                if 'temp_output_path' in locals():
+                    os.unlink(temp_output_path)
+            except:
+                pass
+    
+    def _write_single_row_data(self, worksheet, mapping, row_data):
+        """単一行のデータを書き込み"""
+        logger.debug(f"行データ書き込み - 行番号: {row_data.row_number}, 施設名: {row_data.facility_name}")
+        
+        # セルマッピングに従って各セルに値を書き込み
+        for i, cell_mapping in enumerate(mapping.cell_mappings):
+            if i < len(row_data.extracted_values):
+                # 出力先セルの行番号を動的に調整
+                target_cell = self._adjust_cell_row_number(
+                    cell_mapping.target,
+                    row_data.row_number
+                )
+                
+                # セルに値を書き込み
+                try:
+                    cell = worksheet[target_cell]
+                    value = row_data.extracted_values[i]
+                    
+                    # 結合セルの処理
+                    merged_range = self._find_merged_cell_range(worksheet, cell)
+                    if merged_range:
+                        worksheet.unmerge_cells(str(merged_range))
+                        cell.value = self._convert_value_for_cell(value)
+                        worksheet.merge_cells(str(merged_range))
+                    else:
+                        cell.value = self._convert_value_for_cell(value)
+                    
+                    logger.debug(f"セル書き込み: {target_cell} = {value}")
+                    
+                except Exception as e:
+                    logger.warning(f"セル {target_cell} への書き込みをスキップ: {str(e)}")
+                    continue
+    
+    def _adjust_cell_row_number(self, original_cell: str, new_row: int) -> str:
+        """セル参照の行番号を調整"""
+        # セル参照から列文字と行番号を分離
+        match = re.match(r'([A-Z]+)(\d+)', original_cell)
+        if match:
+            column = match.group(1)
+            return f"{column}{new_row}"
+        else:
+            raise ValueError(f"無効なセル参照: {original_cell}")
+    
+    def validate_template_capacity(self, template_info, required_rows: int, start_row: int = 14):
+        """テンプレートの容量チェック"""
+        from ..domain.entities import ValidationResult
+        
+        max_excel_rows = 1048576  # Excelの最大行数
+        end_row = start_row + required_rows - 1
+        
+        if end_row > max_excel_rows:
+            return ValidationResult.invalid(
+                f"必要な行数が多すぎます。最大{max_excel_rows - start_row + 1}行まで処理可能です。"
+            )
+        
+        # テンプレート固有の制限チェック
+        if required_rows > 1000:  # 例：1000行制限
+            return ValidationResult.invalid(
+                f"一度に処理できる最大行数は1000行です。現在の要求: {required_rows}行"
+            )
+        
+        return ValidationResult.valid()
 
 
 class StructuredLoggerRepository:
