@@ -52,34 +52,34 @@ class ExtractionConfig:
         """デフォルトのセル参照設定（1行上にシフト修正）"""
         if self.cell_references is None:
             self.cell_references = [
-                CellReference.single_cell("F40"),      # E14 (株式会社ＰＯＬＹＶＡＬＥＮＴ)
-                CellReference.single_cell("F41"),      # F14 (ｶﾌﾞｼｷｶﾞｲｼｬﾎﾟﾘﾊﾞﾚﾝﾄ)
-                CellReference.single_cell("F42"),      # G14 (7010901044955)
-                CellReference.single_cell("F43"),      # H14 (4110036)
-                CellReference.concat_cells(["F44", "F46", "F48"]),  # I14
-                CellReference.concat_cells(["F45", "F47", "F49"]),  # J14
-                CellReference.single_cell("F50"),      # K14
-                CellReference.single_cell("F88"),      # L14
-                CellReference.single_cell("F89"),      # M14
-                CellReference.single_cell("F91"),      # N14
-                CellReference.concat_cells(["F92", "F94", "F96"]),  # O14
-                CellReference.concat_cells(["F93", "F95", "F97"]),  # P14
-                CellReference.single_cell("F98"),      # Q14
-                CellReference.single_cell("F51"),      # R14
-                CellReference.single_cell("F52"),      # S14
-                CellReference.concat_cells(["F56", "F58"], separator="　"),  # U14 (全角スペース)
-                CellReference.concat_cells(["F57", "F59"], separator=" "),   # V14 (半角スペース)
-                CellReference.single_cell("F61"),      # W14
-                CellReference.single_cell("F60"),      # X14
-                CellReference.single_cell("F62"),      # Y14
-                CellReference.concat_cells(["F63", "F65", "F67"]),  # Z14
-                CellReference.concat_cells(["F64", "F66", "F68"]),  # AA14
-                CellReference.single_cell("F69"),      # AB14
-                CellReference.single_cell("F105"),     # AC14
-                CellReference.single_cell("F107"),     # AD14
-                CellReference.single_cell("F109"),     # AE14
-                CellReference.single_cell("F108"),     # AF14
-                CellReference.single_cell("F106"),     # AG14
+                CellReference.single_cell("F40"),      # 法人名もしくは個人事業主は施設名
+                CellReference.single_cell("F41"),      # 法人名（ｶﾅ）／施設名（ｶﾅ）
+                CellReference.single_cell("F42"),      # 法人番号
+                CellReference.single_cell("F43"),      # 郵便番号
+                CellReference.concat_cells(["F44", "F46", "F48"]),  # 住所, 建物名, 階数・部屋番号
+                CellReference.concat_cells(["F45", "F47", "F49"]),  # 住所（ｶﾅ）, 建物名（ｶﾅ）, 階数・部屋番号（ｶﾅ）
+                CellReference.single_cell("F50"),      # 電話番号
+                CellReference.single_cell("F88"),      # 店舗名
+                CellReference.single_cell("F89"),      # 店舗名（ｶﾅ）
+                CellReference.single_cell("F91"),      # 店舗郵便番号
+                CellReference.concat_cells(["F92", "F94", "F96"]),  # 店舗住所, 建物名, 階数・部屋番号
+                CellReference.concat_cells(["F93", "F95", "F97"]),  # 店舗住所（ｶﾅ）, 建物名（ｶﾅ）, 階数・部屋番号（ｶﾅ）
+                CellReference.single_cell("F98"),      # 店舗電話番号
+                CellReference.single_cell("F51"),      # 業種
+                CellReference.single_cell("F52"),      # 事業内容
+                CellReference.concat_cells(["F56", "F58"], separator="　"),  # 代表者姓, 名
+                CellReference.concat_cells(["F57", "F59"], separator=" "),   # 代表者姓（ｶﾅ）, 名（ｶﾅ）
+                CellReference.single_cell("F61"),      # 生年月日
+                CellReference.single_cell("F60"),      # 性別
+                CellReference.single_cell("F62"),      # 代表者郵便番号
+                CellReference.concat_cells(["F63", "F65", "F67"]),  # 代表者住所, 建物名, 階数・部屋番号
+                CellReference.concat_cells(["F64", "F66", "F68"]),  # 代表者住所（ｶﾅ）, 建物名（ｶﾅ）, 階数・部屋番号（ｶﾅ）
+                CellReference.single_cell("F69"),      # 代表者電話番号
+                CellReference.single_cell("F105"),     # 訪問販売有無
+                CellReference.single_cell("F107"),     # 連鎖販売取引有無
+                CellReference.single_cell("F109"),     # 特定継続的役務提供有無
+                CellReference.single_cell("F108"),     # 業務提供誘引販売有無
+                CellReference.single_cell("F106"),     # 電話勧誘販売有無
             ]
 
 
