@@ -72,8 +72,8 @@ class ExtractionConfig:
                 CellReference.single_cell("F61"),      # W14
                 CellReference.single_cell("F60"),      # X14
                 CellReference.single_cell("F62"),      # Y14
-                CellReference.concat_cells(["F63", "F65", "F67"], format_rules={"F67": "zenkaku_int"}),  # Z14
-                CellReference.concat_cells(["F64", "F66", "F68"], format_rules={"F68": "hankaku_int"}),  # AA14
+                CellReference.concat_cells(["F63", "F65", "F67"]),  # Z14
+                CellReference.concat_cells(["F64", "F66", "F68"]),  # AA14
                 CellReference.single_cell("F69"),      # AB14
                 CellReference.single_cell("F105"),     # AC14
                 CellReference.single_cell("F107"),     # AD14

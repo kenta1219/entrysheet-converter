@@ -1,6 +1,6 @@
-# ファイル変換Webアプリ (Clean Architecture版)
+# エントリーシート一括変換アプリ (Clean Architecture版)
 
-.xlsbファイルからデータを抽出し、.xlsxテンプレートに転記するWebアプリケーションです。
+.xlsbファイルからデータを抽出し、複数の.xlsxテンプレートに一括転記するWebアプリケーションです。
 
 ## アーキテクチャ
 
@@ -11,20 +11,25 @@
 ```
 src/
 ├── domain/              # ドメインレイヤー（ビジネスロジック）
-│   ├── entities.py      # エンティティ
-│   ├── repositories.py  # リポジトリインターフェース
-│   └── services.py      # ドメインサービス
+│   └── entities.py      # エンティティ（BatchProcessRequest, TemplateInfo等）
 ├── application/         # アプリケーションレイヤー（ユースケース）
-│   └── use_cases.py     # ユースケース
+│   └── batch_use_cases.py  # 一括処理ユースケース
 ├── infrastructure/     # インフラストラクチャレイヤー（外部依存）
-│   ├── repositories.py  # リポジトリ実装
+│   ├── repositories.py     # ファイル処理リポジトリ実装
+│   ├── template_repository.py  # テンプレート管理リポジトリ
 │   ├── config.py        # 設定管理
 │   └── container.py     # 依存性注入コンテナ
 ├── presentation/       # プレゼンテーションレイヤー（API層）
 │   └── controllers/     # 分離されたコントローラー
-│       ├── file_controller.py    # ファイル処理API
+│       ├── batch_controller.py   # 一括処理API
 │       ├── health_controller.py  # ヘルスチェックAPI
 │       └── web_controller.py     # Web UI API
+├── templates/          # Excelテンプレートファイル
+│   ├── template_config.json     # テンプレート設定
+│   ├── 【電子マネー】包括代理加盟店店子申請フォーマット.xlsx
+│   ├── 【イオンペイ】包括代理加盟店店子申請フォーマット.xlsx
+│   ├── 【統一版】店子申請フォーマット（対面用）.xlsx
+│   └── 【店頭】JCB加盟店登録_店子登録申請IF仕様書.xlsx
 └── web/                # Web UIレイヤー（フロントエンド）
     ├── templates/       # HTMLテンプレート
     │   └── upload_form.html
@@ -85,21 +90,21 @@ src/
 
 ## 機能
 
-### 単一ファイル処理
-- .xlsbファイルの「加盟店申込書_施設名」シートから特定のセル（F41, F42, F43等）の値を抽出
-- 一部のセルは複数セルの合計値を計算（例：F45+F47+F49）
-- 抽出したデータを.xlsxテンプレートの「店子申請一覧」シート14行目の指定列（E14, F14, G14等）に書き込み
-- 処理済みファイルを「【電子マネー】包括代理加盟店店子申請フォーマット（割賦販売法対象外）.xlsx」として返却
+### 一括処理機能 (v3.0)
+- **1つの.xlsbファイルを複数のテンプレートに対して一括処理**
+- **対応テンプレート：**
+  - **AEON電子マネー** - 電子マネー包括代理加盟店店子申請フォーマット
+  - **イオンペイ** - イオンペイ包括代理加盟店店子申請フォーマット
+  - **JACCS** - 統一版店子申請フォーマット（対面用）
+  - **JCB** - JCB加盟店登録店子登録申請IF仕様書
+- **日本語ファイル名対応** - 施設名と処理日付を含むZIPファイル名（例：あきつき薬局_20250805.zip）
+- **シンプルなUI** - 一括処理専用のクリーンなインターフェース
 
-### 一括処理機能 (v2.1)
-- 1つの.xlsbファイルを複数のテンプレートに対して一括処理
-- 対応テンプレート：
-  - AEON電子マネー
-  - イオンペイ
-  - JACCS
-  - JCB
-- 施設名と処理日付を含むZIPファイル名で一括ダウンロード（例：山田商店_20250805.zip）
-- タブ形式のUIで単一処理と一括処理を切り替え可能
+### データ処理仕様
+- **.xlsbファイル読み込み** - 「加盟店申込書_施設名」シートから特定セルの値を抽出
+- **複雑なセル参照** - 単一セル、合計計算、文字列連結、フォーマット変換に対応
+- **テンプレート固有マッピング** - 各テンプレートに最適化されたセルマッピング設定
+- **エラーハンドリング** - 個別テンプレート処理失敗時も他のテンプレートは継続処理
 
 ### 抽出対象セル
 
@@ -405,38 +410,25 @@ docker run -p 8000:8000 \
 
 ### Webフォーム (推奨)
 
-#### 単一ファイル処理
-1. http://localhost:8000 にアクセス
-2. 「単一処理」タブを選択
-3. .xlsbファイルと.xlsxテンプレートファイルを選択
-4. 「変換実行」ボタンをクリック
-5. 処理済みファイルがダウンロードされます
-
-#### 一括処理
-1. http://localhost:8000 にアクセス
-2. 「一括処理」タブを選択
-3. .xlsbファイルを選択
-4. 施設名を入力
-5. 処理対象のテンプレートを選択（複数選択可能）
-6. 「一括変換実行」ボタンをクリック
-7. ZIPファイルがダウンロードされます
+1. **http://localhost:8000 にアクセス**
+2. **.xlsbファイルを選択** - 「加盟店申込書_施設名」シートを含むファイル
+3. **施設名を入力** - 日本語対応（例：あきつき薬局）
+4. **処理対象テンプレートを選択** - 複数選択可能
+5. **「一括変換実行」ボタンをクリック**
+6. **ZIPファイルがダウンロード** - 施設名_日付.zip形式
 
 ### cURL使用例
 
 ```bash
-# 単一ファイル変換
-curl -X POST "http://localhost:8000/process" \
-  -F "xlsb_file=@source.xlsb" \
-  -F "template_file=@template.xlsx" \
-  -o output.xlsx
-
 # 一括処理
 curl -X POST "http://localhost:8000/batch-process" \
   -F "xlsb_file=@source.xlsb" \
-  -F "facility_name=山田商店" \
-  -F "selected_templates=aeon_emoney" \
+  -F "facility_name=あきつき薬局" \
+  -F "selected_templates=aeon_electronic_money" \
   -F "selected_templates=aeon_pay" \
-  -o batch_output.zip
+  -F "selected_templates=jaccs" \
+  -F "selected_templates=jcb" \
+  -o あきつき薬局_20250805.zip
 
 # 利用可能なテンプレート一覧取得
 curl http://localhost:8000/templates
