@@ -11,6 +11,7 @@
         "source_sheet": "加盟店申込書_施設名",
         "target_sheet": "店子申請一覧",
         "target_row": 14,
+        "multi_file_start_row": 14,
         "cell_mappings": [
           {"target": "E14", "source": "F40", "type": "single"},
           {"target": "F14", "source": "F41", "type": "single"},
@@ -49,7 +50,14 @@
       "filename": "【統一版】店子申請フォーマット（対面用）.xlsx",
       "output_filename": "【統一版】店子申請フォーマット（対面用）.xlsx",
       "description": "JACCS用の申請フォーマット",
-      "is_active": true
+      "is_active": true,
+      "mapping": {
+        "source_sheet": "加盟店申込書_施設名",
+        "target_sheet": "店子申請一覧",
+        "target_row": 14,
+        "multi_file_start_row": 14,
+        "cell_mappings": []
+      }
     },
     {
       "id": "jcb",
@@ -57,7 +65,14 @@
       "filename": "【店頭】JCB加盟店登録_店子登録申請IF仕様書（画面UL DL）.xlsx",
       "output_filename": "【店頭】JCB加盟店登録_店子登録申請IF仕様書（画面UL DL）.xlsx",
       "description": "JCB用の申請フォーマット",
-      "is_active": true
+      "is_active": true,
+      "mapping": {
+        "source_sheet": "加盟店申込書_施設名",
+        "target_sheet": "店子申請一覧",
+        "target_row": 14,
+        "multi_file_start_row": 14,
+        "cell_mappings": []
+      }
     },
     {
       "id": "aeon_pay",
@@ -70,6 +85,7 @@
         "source_sheet": "加盟店申込書_施設名",
         "target_sheet": "店子申請一覧",
         "target_row": 16,
+        "multi_file_start_row": 16,
         "cell_mappings": [
           {"target": "E16", "source": "F40", "type": "single"},
           {"target": "F16", "source": "F41", "type": "single"},

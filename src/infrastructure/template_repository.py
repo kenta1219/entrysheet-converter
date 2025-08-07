@@ -36,7 +36,18 @@ class TemplateRepository:
         if file_path and file_path.exists():
             with open(file_path, 'rb') as f:
                 return f.read()
-        return None
+        
+        # ファイルが見つからない場合の詳細なエラー情報
+        template = self.get_template(template_id)
+        if template:
+            raise FileNotFoundError(
+                f"テンプレートファイルが見つかりません: {template.filename}\n"
+                f"期待されるパス: {file_path}\n"
+                f"テンプレートディレクトリ: {self.templates_dir}\n"
+                f"テンプレートファイルを {self.templates_dir} ディレクトリに配置してください。"
+            )
+        else:
+            raise ValueError(f"テンプレートID '{template_id}' が見つかりません。")
     
     def _load_templates_if_needed(self):
         """必要に応じてテンプレート設定を読み込み"""
@@ -71,7 +82,8 @@ class TemplateRepository:
                         source_sheet=mapping_data['source_sheet'],
                         target_sheet=mapping_data['target_sheet'],
                         target_row=mapping_data['target_row'],
-                        cell_mappings=cell_mappings
+                        cell_mappings=cell_mappings,
+                        multi_file_start_row=mapping_data.get('multi_file_start_row')
                     )
                 
                 template = TemplateInfo(

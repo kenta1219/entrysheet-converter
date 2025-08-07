@@ -103,16 +103,14 @@ def create_app() -> FastAPI:
         @app.post("/multi-file-process")
         async def multi_file_process(
             xlsb_files: List[UploadFile] = File(...),
-            target_template: str = Form(...),
-            facility_names: List[str] = Form(...),
-            start_row: int = Form(14)
+            target_template: str = Form(...)
         ):
             """複数ファイル一括処理エンドポイント"""
             try:
                 logger.info(f"複数ファイル処理開始 - ファイル数: {len(xlsb_files)}, テンプレート: {target_template}")
                 
                 return await multi_file_controller.multi_file_process(
-                    xlsb_files, target_template, facility_names, start_row
+                    xlsb_files, target_template
                 )
                 
             except Exception as e:

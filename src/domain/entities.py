@@ -167,6 +167,7 @@ class TemplateMapping:
     target_sheet: str
     target_row: int
     cell_mappings: List[CellMapping]
+    multi_file_start_row: Optional[int] = None
 
 
 @dataclass
@@ -246,15 +247,10 @@ class MultiFileProcessRequest:
     """複数ファイル処理リクエストエンティティ"""
     xlsb_files: List['FileInfo']
     target_template_id: str
-    facility_names: List[str]
     process_date: datetime
-    start_row: int = 14
     
     def __post_init__(self):
         """バリデーション"""
-        if len(self.xlsb_files) != len(self.facility_names):
-            raise ValueError("xlsbファイル数と施設名数が一致しません")
-        
         if len(self.xlsb_files) == 0:
             raise ValueError("xlsbファイルが指定されていません")
         
@@ -310,7 +306,6 @@ class MultiFileProcessResult:
 class RowData:
     """行データエンティティ"""
     row_number: int
-    facility_name: str
     extracted_values: List[str]
     source_filename: str
     
@@ -318,9 +313,6 @@ class RowData:
         """バリデーション"""
         if self.row_number < 1:
             raise ValueError("行番号は1以上である必要があります")
-        
-        if not self.facility_name.strip():
-            raise ValueError("施設名が指定されていません")
 
 
 @dataclass

@@ -314,7 +314,7 @@ class TemplateBasedFileProcessingRepository:
     
     def _write_single_row_data(self, worksheet, mapping, row_data):
         """単一行のデータを書き込み"""
-        logger.debug(f"行データ書き込み - 行番号: {row_data.row_number}, 施設名: {row_data.facility_name}")
+        logger.debug(f"行データ書き込み - 行番号: {row_data.row_number}, ソースファイル: {row_data.source_filename}")
         
         # セルマッピングに従って各セルに値を書き込み
         for i, cell_mapping in enumerate(mapping.cell_mappings):

@@ -311,19 +311,35 @@ document.addEventListener('DOMContentLoaded', function() {
         if (multiFileDropZone) {
             multiFileDropZone.addEventListener('dragover', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 this.classList.add('drag-over');
             });
             
             multiFileDropZone.addEventListener('dragleave', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 this.classList.remove('drag-over');
             });
             
             multiFileDropZone.addEventListener('drop', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 this.classList.remove('drag-over');
+                
                 const files = Array.from(e.dataTransfer.files);
                 processSelectedFiles(files);
+                
+                // input要素にもファイルを設定
+                const dataTransfer = new DataTransfer();
+                files.forEach(file => dataTransfer.items.add(file));
+                xlsbFilesInput.files = dataTransfer.files;
+            });
+            
+            // クリックでファイル選択
+            multiFileDropZone.addEventListener('click', function(e) {
+                if (e.target === this || e.target.classList.contains('drop-zone-content') || e.target.classList.contains('upload-icon')) {
+                    xlsbFilesInput.click();
+                }
             });
         }
         
@@ -338,23 +354,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 const targetTemplate = document.getElementById('target_template').value;
-                const startRow = document.getElementById('start_row').value;
                 
                 if (!targetTemplate) {
                     showError('出力先テンプレートを選択してください。');
                     return;
-                }
-                
-                // 施設名の取得
-                const facilityNames = Array.from(document.querySelectorAll('input[name="facility_names"]'))
-                    .map(input => input.value.trim());
-                
-                // 施設名のバリデーション
-                for (let i = 0; i < facilityNames.length; i++) {
-                    if (!facilityNames[i]) {
-                        showError(`ファイル${i+1}の施設名を入力してください。`);
-                        return;
-                    }
                 }
                 
                 // FormDataを作成
@@ -363,10 +366,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     formData.append('xlsb_files', file);
                 });
                 formData.append('target_template', targetTemplate);
-                formData.append('start_row', startRow);
-                facilityNames.forEach(name => {
-                    formData.append('facility_names', name);
-                });
                 
                 // 送信処理
                 await submitMultiFileForm(formData);
@@ -390,7 +389,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             selectedFiles = files;
             updateFilesList();
-            generateFacilityNameFields();
         }
         
         // ファイルリスト表示更新
@@ -433,45 +431,8 @@ document.addEventListener('DOMContentLoaded', function() {
         function removeFile(index) {
             selectedFiles.splice(index, 1);
             updateFilesList();
-            generateFacilityNameFields();
         }
         
-        // 施設名入力フィールド生成
-        function generateFacilityNameFields() {
-            if (!facilityNamesContainer) return;
-            
-            facilityNamesContainer.innerHTML = '';
-            
-            if (selectedFiles.length === 0) return;
-            
-            const fieldset = document.createElement('fieldset');
-            fieldset.innerHTML = '<legend>各ファイルの施設名</legend>';
-            
-            selectedFiles.forEach((file, index) => {
-                const fieldGroup = document.createElement('div');
-                fieldGroup.className = 'form-group facility-name-group';
-                
-                // ファイル名から施設名を推測
-                const suggestedName = extractFacilityNameFromFilename(file.name);
-                
-                fieldGroup.innerHTML = `
-                    <label for="facility_name_${index}">${file.name}</label>
-                    <input type="text" id="facility_name_${index}"
-                           name="facility_names" value="${suggestedName}"
-                           placeholder="施設名を入力" required>
-                `;
-                fieldset.appendChild(fieldGroup);
-            });
-            
-            facilityNamesContainer.appendChild(fieldset);
-        }
-        
-        // ファイル名から施設名を推測
-        function extractFacilityNameFromFilename(filename) {
-            const nameWithoutExt = filename.replace(/\.xlsb$/i, '');
-            const parts = nameWithoutExt.split(/[_\-]/);
-            return parts[0] || '';
-        }
         
         // 複数ファイル処理送信
         async function submitMultiFileForm(formData) {

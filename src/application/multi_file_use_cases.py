@@ -48,15 +48,18 @@ class MultiFileProcessingUseCase:
             # 1. テンプレート情報を取得
             template = self._get_target_template(request.target_template_id)
             
-            # 2. 容量チェック
+            # 2. テンプレートから開始行番号を取得
+            start_row = template.mapping.multi_file_start_row or template.mapping.target_row
+            
+            # 3. 容量チェック
             validation_result = self._file_processor.validate_template_capacity(
-                template, len(request.xlsb_files), request.start_row
+                template, len(request.xlsb_files), start_row
             )
             if not validation_result.is_valid:
                 return MultiFileProcessResult.error_result(validation_result.error_message)
             
-            # 3. 各xlsbファイルからデータを抽出
-            row_data_list = self._extract_data_from_multiple_files(request)
+            # 4. 各xlsbファイルからデータを抽出
+            row_data_list = self._extract_data_from_multiple_files(request, start_row)
             
             if not row_data_list:
                 return MultiFileProcessResult.error_result("全てのファイル処理が失敗しました")
@@ -95,23 +98,21 @@ class MultiFileProcessingUseCase:
         return template
     
     def _extract_data_from_multiple_files(
-        self, 
-        request: MultiFileProcessRequest
+        self,
+        request: MultiFileProcessRequest,
+        start_row: int
     ) -> List[RowData]:
         """複数ファイルからデータを抽出"""
         row_data_list = []
         failed_files = []
         
-        for i, (xlsb_file, facility_name) in enumerate(
-            zip(request.xlsb_files, request.facility_names)
-        ):
+        for i, xlsb_file in enumerate(request.xlsb_files):
             try:
                 # 各ファイルからデータ抽出
                 extracted_data = self._file_processor.extract_data_from_xlsb(xlsb_file)
                 
                 row_data = RowData(
-                    row_number=request.start_row + i,
-                    facility_name=facility_name,
+                    row_number=start_row + i,
                     extracted_values=extracted_data.values,
                     source_filename=xlsb_file.filename
                 )

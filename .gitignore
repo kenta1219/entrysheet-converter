@@ -146,3 +146,13 @@ temp/
 # ログファイル
 *.log
 logs/
+
+# Python バイトコードファイル
+*.pyc
+__pycache__/
+
+# Excel ファイル（バイナリ）
+*.xlsx
+*.xlsb
+*.xls
+*.ods

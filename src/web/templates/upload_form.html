@@ -111,7 +111,7 @@
                 <h4>機能説明</h4>
                 <ul>
                     <li>複数のxlsbファイルから各々「加盟店申込書_施設名」シートのデータを抽出</li>
-                    <li>抽出したデータを1つのテンプレートに順次行追加（14行目から開始）</li>
+                    <li>抽出したデータを1つのテンプレートに順次行追加</li>
                     <li>処理済みファイルを単一のExcelファイルとしてダウンロード</li>
                 </ul>
             </div>
@@ -142,16 +142,6 @@
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label for="start_row">開始行番号</label>
-                    <input type="number" id="start_row" name="start_row"
-                           value="14" min="1" max="1000" required>
-                    <small>テンプレートの何行目から書き込みを開始するか</small>
-                </div>
-
-                <div id="facilityNamesContainer" class="facility-names-container">
-                    <!-- 動的に施設名入力フィールドが追加される -->
-                </div>
 
                 <button type="submit" id="multiFileSubmitBtn" class="submit-btn">
                     <span class="btn-text">一括集約処理実行</span>
